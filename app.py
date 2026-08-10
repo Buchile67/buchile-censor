@@ -27,6 +27,9 @@ ROOT = Path(__file__).resolve().parent
 MODEL_DIR = ROOT / "models"
 BRAND_ICON = ROOT / "assets" / "buchile.jpg"
 PIXIV_URL = "https://www.pixiv.net/en/users/118035672"
+GITHUB_PROFILE_URL = "https://github.com/Buchile67"
+BASIC_REPO_URL = "https://github.com/Buchile67/buchile-censor"
+VANGUARD_REPO_URL = "https://github.com/Buchile67/buchile-censor-vanguard-beta"
 STICKER_SAMPLES = {
     "dagou": ROOT / "assets" / "dagou.png",
     "maodie": ROOT / "assets" / "maodie.png",
@@ -54,6 +57,10 @@ I18N = {
         "page_title": "Buchile 精细自动打码",
         "subtitle": "双模型轮廓分割 · 可选部位 · 低阈值补检 · 贴图/像素马赛克 · 多图导出",
         "creator_link": "作者 Pixiv 主页",
+        "free_notice": "本工具为免费开源工具，如果您是通过任何付费方式获得本工具，均为盗版！！😭",
+        "project_links": "项目与源代码",
+        "acknowledgements": "致谢与参考项目",
+        "acknowledgements_intro": "感谢以下开源项目、模型与开发者提供的工作基础：",
         "language": "界面语言 / Language",
         "settings": "打码设置",
         "preset": "部位预设",
@@ -131,6 +138,10 @@ I18N = {
         "page_title": "Buchile Precision Auto Censor",
         "subtitle": "Dual-model contour segmentation · Selectable regions · Low-threshold recovery · Sticker/pixel mosaic · Batch export",
         "creator_link": "Creator on Pixiv",
+        "free_notice": "This is a free and open-source tool. If you obtained it through any paid channel, it is an unauthorized copy!! 😭",
+        "project_links": "Projects and Source Code",
+        "acknowledgements": "Acknowledgements and References",
+        "acknowledgements_intro": "Many thanks to the following open-source projects, models, and developers:",
         "language": "Language / 界面语言",
         "settings": "Censor Settings",
         "preset": "Region Preset",
@@ -354,6 +365,21 @@ with brand_title_column:
     st.title(tr("page_title"))
 st.caption(tr("subtitle"))
 st.markdown(f"{tr('creator_link')}: [Buchile]({PIXIV_URL})")
+st.warning(tr("free_notice"), icon="⚠️")
+st.markdown(
+    f"{tr('project_links')}: "
+    f"[Buchile GitHub]({GITHUB_PROFILE_URL}) · "
+    f"[Base Edition]({BASIC_REPO_URL}) · "
+    f"[Vanguard Beta]({VANGUARD_REPO_URL})"
+)
+with st.expander(tr("acknowledgements")):
+    st.markdown(tr("acknowledgements_intro"))
+    st.markdown(
+        "- [frinkleko/AutoHajimiMosaic](https://github.com/frinkleko/AutoHajimiMosaic)\n"
+        "- [spawner1145/auto-censor](https://github.com/spawner1145/auto-censor)\n"
+        "- [Wenaka2004/auto-censor](https://github.com/Wenaka2004/auto-censor)\n"
+        "- [Ultralytics](https://github.com/ultralytics/ultralytics)"
+    )
 
 with st.sidebar:
     st.header(tr("settings"))
