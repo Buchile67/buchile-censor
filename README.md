@@ -19,8 +19,10 @@ A local contour-aware image masking tool with pixel mosaics, sticker overlays, r
 
 - 使用两套 YOLO 分割模型进行互补检测。
 - 遮挡效果限制在模型输出的像素级轮廓内。
+- 识别阈值、补检参数和推理尺寸可应用到当前图片或全部图片。
+- 预览图可显示区域序号；序号不会写入导出文件。
 - 支持可调强度的像素马赛克。
-- 支持大狗、猫咪两种内置贴图及自定义贴图。
+- 支持大狗叫、耄耋两种内置贴图及自定义贴图；贴图模式不会叠加像素马赛克。
 - 支持部位预设、逐区域开关与指定类别的低阈值补检。
 - 支持多图上传、批量处理、PNG/JPEG 输出及 ZIP 导出。
 - 支持中文和英文界面。
@@ -46,8 +48,10 @@ python -m venv .venv
 
 - Complementary detection using two YOLO segmentation models.
 - Masking effects constrained to pixel-level model contours.
+- Detection thresholds, recovery settings, and inference size can apply to the current image or all images.
+- Optional numbered region markers in previews; markers are never included in exports.
 - Adjustable pixel-mosaic strength.
-- Built-in dog and cat stickers, plus custom sticker uploads.
+- Built-in dog and cat stickers plus custom uploads; sticker mode does not mix in pixel mosaics.
 - Region presets, per-instance selection, and lower-threshold recovery for selected categories.
 - Multi-image processing with PNG/JPEG output and ZIP export.
 - Chinese and English interface.

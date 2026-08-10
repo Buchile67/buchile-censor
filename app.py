@@ -17,6 +17,7 @@ from core import (
     decode_sticker,
     detect_regions,
     detections_for_parts,
+    draw_detection_markers,
     encode_image,
     load_segmentation_models,
 )
@@ -29,6 +30,13 @@ PIXIV_URL = "https://www.pixiv.net/en/users/118035672"
 STICKER_SAMPLES = {
     "dagou": ROOT / "assets" / "dagou.png",
     "maodie": ROOT / "assets" / "maodie.png",
+}
+
+DEFAULT_DETECTION_PROFILE = {
+    "base_threshold": 0.35,
+    "supplement_parts": (),
+    "supplement_threshold": 0.12,
+    "image_size": 960,
 }
 
 PARTS = list(PART_LABELS)
@@ -69,7 +77,16 @@ I18N = {
         "supplement_parts_help": "只对这些部位启用更低阈值，用于增添常规检测遗漏的区域。",
         "supplement_threshold": "补检阈值",
         "accuracy": "识别精度",
-        "accuracy_help": "更高更精细，但处理更慢。",
+        "accuracy_help": "推理尺寸范围为 320–1920，按模型步长 32 调整。更高可能提升小目标细节，但会增加显存、内存和处理时间。",
+        "detection_profiles": "识别阈值与精度",
+        "detection_profiles_help": "设置常规阈值、补检参数和推理尺寸，再选择仅应用到当前图片或应用到全部图片。",
+        "detection_profile_current": "当前图片正在使用独立识别参数。",
+        "detection_profile_global": "当前图片正在使用全局识别参数。",
+        "detection_apply_hint": "修改后请点击应用按钮；预览和批量导出仅使用已保存的识别参数。",
+        "apply_current": "仅应用到当前图片",
+        "apply_all_images": "应用到所有图片",
+        "detection_applied_current": "已保存当前图片的独立识别参数。",
+        "detection_applied_all": "已更新全部图片的识别参数，并清除旧的单图覆盖。",
         "mode": "打码方式",
         "mode_pixel": "普通马赛克",
         "mode_sticker": "贴图马赛克",
@@ -77,10 +94,10 @@ I18N = {
         "feather": "轮廓内侧柔化",
         "feather_help": "仅在蒙版内部柔化边缘，不会越出识别轮廓。",
         "custom_sticker": "自定义贴图（可选）",
-        "custom_sticker_help": "选择自定义时上传贴图；若未上传则回退为大狗样例。透明区域会自动补上像素马赛克。",
+        "custom_sticker_help": "选择自定义时上传贴图；若未上传则回退为大狗叫样例。透明区域会使用贴图自身颜色填充，不会混入普通马赛克。",
         "sticker_source": "贴图来源",
-        "sticker_dagou": "大狗样例",
-        "sticker_maodie": "猫咪样例",
+        "sticker_dagou": "大狗叫（大狗样例）",
+        "sticker_maodie": "耄耋（猫咪样例）",
         "sticker_custom": "自行上传",
         "output_format": "导出格式",
         "model_license": "模型与许可",
@@ -95,6 +112,8 @@ I18N = {
         "select_regions_help": "与 Hachimi 的部位选择相似，但这里每个实例都可单独开关。",
         "original": "原图",
         "preview": "精细打码预览",
+        "show_region_numbers": "显示识别区域序号",
+        "show_region_numbers_help": "红底白字序号仅显示在页面预览中，不会写入下载图片或批量导出结果。",
         "no_detection": "没有找到所选部位。可在左侧把对应部位加入“补检部位”，并降低补检阈值。",
         "download_preview": "下载当前预览",
         "batch_title": "批量处理与导出",
@@ -135,7 +154,16 @@ I18N = {
         "supplement_parts_help": "Apply a lower threshold only to these regions to recover possible misses.",
         "supplement_threshold": "Recovery Threshold",
         "accuracy": "Detection Resolution",
-        "accuracy_help": "Higher values preserve more detail but process more slowly.",
+        "accuracy_help": "Inference size ranges from 320 to 1920 in model-stride steps of 32. Higher values may preserve small details but use more memory and processing time.",
+        "detection_profiles": "Detection Threshold and Resolution",
+        "detection_profiles_help": "Set standard/recovery thresholds and inference size, then apply them to the current image or every image.",
+        "detection_profile_current": "This image is using independent detection parameters.",
+        "detection_profile_global": "This image is using the global detection parameters.",
+        "detection_apply_hint": "Click an apply button after editing. Preview and batch export use saved detection parameters only.",
+        "apply_current": "Apply to Current Image Only",
+        "apply_all_images": "Apply to All Images",
+        "detection_applied_current": "Saved independent detection parameters for the current image.",
+        "detection_applied_all": "Updated detection parameters for all images and cleared previous per-image overrides.",
         "mode": "Censor Mode",
         "mode_pixel": "Pixel Mosaic",
         "mode_sticker": "Sticker Mosaic",
@@ -143,7 +171,7 @@ I18N = {
         "feather": "Inner Contour Feathering",
         "feather_help": "Softens only inside the mask and never paints beyond its contour.",
         "custom_sticker": "Custom Sticker (Optional)",
-        "custom_sticker_help": "Upload an image when Custom is selected. Without one, the Dog sample is used. Transparent pixels fall back to pixel mosaic.",
+        "custom_sticker_help": "Upload an image when Custom is selected. Without one, the Dog sample is used. Transparent margins are filled from the sticker itself and never mixed with pixel mosaic.",
         "sticker_source": "Sticker Source",
         "sticker_dagou": "Dog Sample",
         "sticker_maodie": "Cat Sample",
@@ -161,6 +189,8 @@ I18N = {
         "select_regions_help": "Similar to Hachimi region selection, with an independent switch for every detected instance.",
         "original": "Original",
         "preview": "Precision Censor Preview",
+        "show_region_numbers": "Show Detected Region Numbers",
+        "show_region_numbers_help": "Red numbered markers appear only in the page preview and are never written to downloaded or batch-exported images.",
         "no_detection": "No selected regions were found. Add the region under Recovery Regions and lower the recovery threshold.",
         "download_preview": "Download Current Preview",
         "batch_title": "Batch Processing and Export",
@@ -238,10 +268,50 @@ def region_label(index, detection) -> str:
     return f"{index + 1}. {part_label(detection.part)}"
 
 
+def upload_key(index: int, filename: str, data: bytes) -> str:
+    identity = f"{index}:{filename}:".encode("utf-8") + data
+    return hashlib.sha1(identity).hexdigest()[:20]
+
+
+def detection_store() -> dict:
+    if "detection_profiles" not in st.session_state:
+        st.session_state["detection_profiles"] = {
+            "global": dict(DEFAULT_DETECTION_PROFILE),
+            "images": {},
+        }
+    store = st.session_state["detection_profiles"]
+    store["global"].setdefault("supplement_parts", ())
+    return store
+
+
+def effective_detection_profile(image_id: str) -> dict:
+    store = detection_store()
+    profile = store["images"].get(image_id, store["global"])
+    result = dict(profile)
+    result["supplement_parts"] = tuple(result.get("supplement_parts", ()))
+    return result
+
+
+def detection_state_signature() -> tuple:
+    store = detection_store()
+
+    def value(profile: dict) -> tuple:
+        return (
+            float(profile["base_threshold"]),
+            tuple(profile.get("supplement_parts", ())),
+            float(profile["supplement_threshold"]),
+            int(profile["image_size"]),
+        )
+
+    return (
+        value(store["global"]),
+        tuple((image_id, value(profile)) for image_id, profile in sorted(store["images"].items())),
+    )
+
+
 def build_zip(
     uploaded_files,
     selected_parts,
-    detection_settings,
     effect_settings,
     sticker_rgba,
     output_format,
@@ -255,6 +325,8 @@ def build_zip(
             try:
                 data = uploaded.getvalue()
                 image = cached_decode(data)
+                image_id = upload_key(index, uploaded.name, data)
+                detection_settings = effective_detection_profile(image_id)
                 detections = run_detection(data, **detection_settings)
                 chosen = detections_for_parts(detections, selected_parts)
                 if not chosen:
@@ -301,39 +373,6 @@ with st.sidebar:
     )
 
     st.divider()
-    st.subheader(tr("sensitivity"))
-    base_threshold = st.slider(
-        tr("base_threshold"),
-        min_value=0.15,
-        max_value=0.80,
-        value=0.35,
-        step=0.01,
-        help=tr("base_threshold_help"),
-    )
-    supplement_parts_selected = st.multiselect(
-        tr("supplement_parts"),
-        options=PARTS,
-        default=[],
-        format_func=part_label,
-        help=tr("supplement_parts_help"),
-    )
-    supplement_parts = tuple(supplement_parts_selected)
-    supplement_threshold = st.slider(
-        tr("supplement_threshold"),
-        min_value=0.03,
-        max_value=0.35,
-        value=0.12,
-        step=0.01,
-        disabled=not supplement_parts,
-    )
-    image_size = st.select_slider(
-        tr("accuracy"),
-        options=[640, 768, 960, 1280],
-        value=960,
-        help=tr("accuracy_help"),
-    )
-
-    st.divider()
     mode_key = st.radio(
         tr("mode"),
         ["pixel", "sticker"],
@@ -341,20 +380,24 @@ with st.sidebar:
         format_func=lambda value: tr(f"mode_{value}"),
     )
     mode = "贴图马赛克" if mode_key == "sticker" else "普通马赛克"
-    block_size = st.slider(
-        tr("block_size"),
-        min_value=2,
-        max_value=64,
-        value=18,
-        step=1,
-    )
-    feather = st.slider(
-        tr("feather"),
-        min_value=0,
-        max_value=5,
-        value=1,
-        help=tr("feather_help"),
-    )
+    block_size = 18
+    if mode_key == "pixel":
+        block_size = st.slider(
+            tr("block_size"),
+            min_value=2,
+            max_value=64,
+            value=18,
+            step=1,
+        )
+    feather = 0
+    if mode_key == "pixel":
+        feather = st.slider(
+            tr("feather"),
+            min_value=0,
+            max_value=5,
+            value=1,
+            help=tr("feather_help"),
+        )
     sticker_file = None
     sticker_source = "dagou"
     if mode_key == "sticker":
@@ -406,13 +449,96 @@ preview_index = st.selectbox(
 current_file = uploaded_files[preview_index]
 current_data = current_file.getvalue()
 current_image = cached_decode(current_data)
+current_image_id = upload_key(preview_index, current_file.name, current_data)
 
-detection_settings = {
-    "base_threshold": float(base_threshold),
-    "supplement_parts": supplement_parts,
-    "supplement_threshold": float(supplement_threshold),
-    "image_size": int(image_size),
-}
+with st.expander(tr("detection_profiles"), expanded=True):
+    st.caption(tr("detection_profiles_help"))
+    detection_message = st.session_state.pop("detection_profile_message", None)
+    if detection_message:
+        st.success(detection_message)
+    detection_source = effective_detection_profile(current_image_id)
+    has_detection_override = current_image_id in detection_store()["images"]
+    st.caption(
+        tr("detection_profile_current")
+        if has_detection_override
+        else tr("detection_profile_global")
+    )
+    detection_revision = st.session_state.get("detection_editor_revision", 0)
+    detection_key = f"{language}_{current_image_id}_{detection_revision}"
+    draft_base_threshold = st.slider(
+        tr("base_threshold"),
+        min_value=0.15,
+        max_value=0.80,
+        value=float(detection_source["base_threshold"]),
+        step=0.01,
+        help=tr("base_threshold_help"),
+        key=f"detection_base_{detection_key}",
+    )
+    draft_supplement_parts = tuple(
+        st.multiselect(
+            tr("supplement_parts"),
+            options=PARTS,
+            default=list(detection_source.get("supplement_parts", ())),
+            format_func=part_label,
+            help=tr("supplement_parts_help"),
+            key=f"detection_parts_{detection_key}",
+        )
+    )
+    draft_supplement_threshold = st.slider(
+        tr("supplement_threshold"),
+        min_value=0.03,
+        max_value=0.35,
+        value=float(detection_source["supplement_threshold"]),
+        step=0.01,
+        disabled=not draft_supplement_parts,
+        key=f"detection_supplement_{detection_key}",
+    )
+    draft_image_size = st.slider(
+        tr("accuracy"),
+        min_value=320,
+        max_value=1920,
+        value=int(detection_source["image_size"]),
+        step=32,
+        help=tr("accuracy_help"),
+        key=f"detection_size_{detection_key}",
+    )
+    st.caption(tr("detection_apply_hint"))
+    draft_detection_profile = {
+        "base_threshold": float(draft_base_threshold),
+        "supplement_parts": draft_supplement_parts,
+        "supplement_threshold": float(draft_supplement_threshold),
+        "image_size": int(draft_image_size),
+    }
+    detection_current_column, detection_all_column = st.columns(2)
+    with detection_current_column:
+        apply_detection_current = st.button(
+            tr("apply_current"),
+            key="detection_apply_current",
+            use_container_width=True,
+        )
+    with detection_all_column:
+        apply_detection_all = st.button(
+            tr("apply_all_images"),
+            key="detection_apply_all",
+            type="primary",
+            use_container_width=True,
+        )
+    if apply_detection_current:
+        detection_store()["images"][current_image_id] = dict(draft_detection_profile)
+        st.session_state["detection_editor_revision"] = detection_revision + 1
+        st.session_state["detection_profile_message"] = tr("detection_applied_current")
+        st.session_state.pop("batch_result", None)
+        st.rerun()
+    if apply_detection_all:
+        store = detection_store()
+        store["global"] = dict(draft_detection_profile)
+        store["images"].clear()
+        st.session_state["detection_editor_revision"] = detection_revision + 1
+        st.session_state["detection_profile_message"] = tr("detection_applied_all")
+        st.session_state.pop("batch_result", None)
+        st.rerun()
+
+detection_settings = effective_detection_profile(current_image_id)
 effect_settings = {
     "mode": mode,
     "block_size": int(block_size),
@@ -450,11 +576,27 @@ processed_preview = apply_censor(
     **effect_settings,
 )
 
+show_region_numbers = st.toggle(
+    tr("show_region_numbers"),
+    value=True,
+    help=tr("show_region_numbers_help"),
+)
+display_original = (
+    draw_detection_markers(current_image, candidate_detections)
+    if show_region_numbers
+    else current_image
+)
+display_preview = (
+    draw_detection_markers(processed_preview, candidate_detections)
+    if show_region_numbers
+    else processed_preview
+)
+
 left, right = st.columns(2, gap="medium")
 with left:
-    st.image(current_image, caption=tr("original"), use_container_width=True)
+    st.image(display_original, caption=tr("original"), use_container_width=True)
 with right:
-    st.image(processed_preview, caption=tr("preview"), use_container_width=True)
+    st.image(display_preview, caption=tr("preview"), use_container_width=True)
 
 if not candidate_detections:
     st.warning(tr("no_detection"))
@@ -478,7 +620,7 @@ batch_signature = hashlib.sha1(
         (
             [(item.name, len(item.getvalue())) for item in uploaded_files],
             selected_parts,
-            detection_settings,
+            detection_state_signature(),
             effect_settings,
             output_format,
             sticker_source,
@@ -491,7 +633,6 @@ if st.button(tr("process_all"), type="primary", use_container_width=True):
     zip_bytes, batch_warnings = build_zip(
         uploaded_files,
         selected_parts,
-        detection_settings,
         effect_settings,
         sticker_rgba,
         output_format,
