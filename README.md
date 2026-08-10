@@ -26,6 +26,7 @@ A local contour-aware image masking tool with pixel mosaics, sticker overlays, r
 - 支持部位预设、逐区域开关与指定类别的低阈值补检。
 - 支持多图上传、批量处理、PNG/JPEG 输出及 ZIP 导出。
 - 支持中文和英文界面。
+- 页面底部包含离线礼盒小游戏，可随机领取一张内置猫咪图片。
 
 ### 安装与启动
 
@@ -55,6 +56,7 @@ python -m venv .venv
 - Region presets, per-instance selection, and lower-threshold recovery for selected categories.
 - Multi-image processing with PNG/JPEG output and ZIP export.
 - Chinese and English interface.
+- Includes an offline gift-box mini-game with a randomly selected built-in kitty image.
 
 ### Setup
 
