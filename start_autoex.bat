@@ -1,31 +1,37 @@
 @echo off
-setlocal
+setlocal EnableExtensions
 cd /d "%~dp0"
 title Buchile Censor
 
-if exist ".venv\Scripts\python.exe" goto run
+set "BUCHILE_PYTHON="
+if exist ".venv\Scripts\python.exe" set "BUCHILE_PYTHON=%~dp0.venv\Scripts\python.exe"
+if defined BUCHILE_PYTHON goto run
 
-echo [Buchile] First launch: preparing a private runtime...
-where py >nul 2>nul
-if not errorlevel 1 (
-  py -3 -m venv .venv
-) else (
-  python -m venv .venv
+if defined LOCALAPPDATA set "BUCHILE_PYTHON=%LOCALAPPDATA%\BuchileRuntime\envs\buchile-censor\python.exe"
+if not defined LOCALAPPDATA set "BUCHILE_PYTHON=%~dp0.runtime\envs\buchile-censor\python.exe"
+set "BUCHILE_READY=%BUCHILE_PYTHON:\python.exe=\.buchile-ready%"
+
+if not exist "%BUCHILE_PYTHON%" goto install
+if not exist "%BUCHILE_READY%" goto install
+goto run
+
+:install
+(
+  call "%~dp0install_autoex.bat"
+  if errorlevel 1 goto failed
 )
-
-if not exist ".venv\Scripts\python.exe" goto failed
-".venv\Scripts\python.exe" -m pip install --upgrade pip
-".venv\Scripts\python.exe" -m pip install -r requirements.txt
-if errorlevel 1 goto failed
+if not exist "%BUCHILE_PYTHON%" goto failed
+if not exist "%BUCHILE_READY%" goto failed
 
 :run
 echo [Buchile] Starting... Keep this window open while using the app.
-".venv\Scripts\python.exe" -m streamlit run app.py
+"%BUCHILE_PYTHON%" -m streamlit run app.py --browser.gatherUsageStats false
 goto end
 
 :failed
 echo.
-echo Setup failed. Please install Python 3.10 or newer, then try again.
+echo Buchile Censor could not start.
+echo Copy this entire window when requesting help.
 pause
 
 :end

@@ -5,3 +5,4 @@ output/
 models/*.pt
 *.zip
 .streamlit/
+installer/*.exe

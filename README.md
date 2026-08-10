@@ -31,7 +31,9 @@ A local contour-aware image masking tool with pixel mosaics, sticker overlays, r
 ### 安装与启动
 
 方式一：
-一键包：Windows 用户可从 [Releases](https://github.com/Buchile67/buchile-censor/releases) 下载包含模型的完整包，解压后双击 `start_autoex.bat`。首次启动会创建独立的 `.venv` 环境并安装依赖，需要 Python 3.10 或更高版本及网络连接。
+一键包：Windows 用户可从 [Releases](https://github.com/Buchile67/buchile-censor/releases) 下载包含模型与 Miniconda 安装包的完整包，解压后双击 `start_autoex.bat`。无需预先安装 Python 或 Miniconda；首次启动按提示输入 `Y` 后，程序会安装一套不影响系统 Python 的私有运行环境，再自动安装所需依赖。请保持网络畅通和窗口开启，并预留数 GB 磁盘空间；之后启动会直接复用已经准备好的环境。
+
+基础版和先锋版共用 `%LOCALAPPDATA%\BuchileRuntime\miniconda`，但使用彼此独立的 Python 环境，不会互相覆盖。旧版已经创建的 `.venv` 也会继续优先使用。
 
 方式二：
 从源码运行（无代码基础不推荐）：
@@ -39,11 +41,11 @@ A local contour-aware image masking tool with pixel mosaics, sticker overlays, r
 ```powershell
 git clone https://github.com/Buchile67/buchile-censor.git
 cd buchile-censor
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-按照 [`models/README.md`](models/README.md) 放置模型，然后运行 `start_autoex.bat`。
+按照 [`models/README.md`](models/README.md) 放置模型，然后运行 `start_autoex.bat`。源码仓库不包含体积较大的 Miniconda 安装程序，首次启动会从官方地址下载并校验它。
+
+如果安装中断，请重新运行启动脚本。安装器不会覆盖已有的完整环境；如仍失败，请复制命令窗口中的完整错误信息。Miniconda 文件来源、校验值和许可说明见 [`installer/README.md`](installer/README.md)。
 
 ## English
 
@@ -62,18 +64,20 @@ python -m venv .venv
 
 ### Setup
 
-Windows users can download the model-included package from [Releases](https://github.com/Buchile67/buchile-censor/releases), extract it, and run `start_autoex.bat`. The first launch creates an isolated `.venv` and installs dependencies. Python 3.10 or newer and a network connection are required.
+**Method 1 — release package:** Download the complete package with models and the Miniconda installer from [Releases](https://github.com/Buchile67/buchile-censor/releases), extract it, and run `start_autoex.bat`. No prior Python or Miniconda installation is required. On first launch, type `Y` when prompted; the setup creates a private runtime without changing the system Python, then installs the dependencies automatically. Keep the network connected and the window open, and allow several GB of free disk space. Later launches reuse the prepared environment.
 
-To run from source:
+The base and Vanguard editions share `%LOCALAPPDATA%\BuchileRuntime\miniconda` but use separate Python environments. An existing legacy `.venv` remains supported and takes priority.
+
+**Method 2 — source (not recommended for users without coding experience):**
 
 ```powershell
 git clone https://github.com/Buchile67/buchile-censor.git
 cd buchile-censor
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-Place the model files described in [`models/README.md`](models/README.md), then run `start_autoex.bat`.
+Place the model files described in [`models/README.md`](models/README.md), then run `start_autoex.bat`. A source checkout does not include the large Miniconda installer, so the first launch downloads and verifies it from the official source.
+
+If setup is interrupted, run the launcher again. Existing complete environments are not overwritten. If it still fails, copy the full console output when requesting help. See [`installer/README.md`](installer/README.md) for the installer source, checksum, and license notice.
 
 ## Models and references / 模型与参考项目
 
