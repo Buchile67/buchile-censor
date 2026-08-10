@@ -30,9 +30,11 @@ A local contour-aware image masking tool with pixel mosaics, sticker overlays, r
 
 ### 安装与启动
 
-Windows 用户可从 [Releases](https://github.com/Buchile67/buchile-censor/releases) 下载包含模型的完整包，解压后双击 `start_autoex.bat`。首次启动会创建独立的 `.venv` 环境并安装依赖，需要 Python 3.10 或更高版本及网络连接。
+方式一：
+一键包：Windows 用户可从 [Releases](https://github.com/Buchile67/buchile-censor/releases) 下载包含模型的完整包，解压后双击 `start_autoex.bat`。首次启动会创建独立的 `.venv` 环境并安装依赖，需要 Python 3.10 或更高版本及网络连接。
 
-从源码运行：
+方式二：
+从源码运行（无代码基础不推荐）：
 
 ```powershell
 git clone https://github.com/Buchile67/buchile-censor.git
