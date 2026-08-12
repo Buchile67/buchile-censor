@@ -22,6 +22,7 @@ from core import (
     load_segmentation_models,
 )
 from kitty_game import render_kitty_gift_game
+from preview_navigation import render_preview_navigator
 
 
 ROOT = Path(__file__).resolve().parent
@@ -123,6 +124,9 @@ I18N = {
         "select_regions_help": "与 Hachimi 的部位选择相似，但这里每个实例都可单独开关。",
         "original": "原图",
         "preview": "精细打码预览",
+        "previous_image": "上一张图片",
+        "next_image": "下一张图片",
+        "preview_position": "第 {current} / {total} 张",
         "show_region_numbers": "显示识别区域序号",
         "show_region_numbers_help": "红底白字序号仅显示在页面预览中，不会写入下载图片或批量导出结果。",
         "no_detection": "没有找到所选部位。可在左侧把对应部位加入“补检部位”，并降低补检阈值。",
@@ -206,6 +210,9 @@ I18N = {
         "select_regions_help": "Similar to Hachimi region selection, with an independent switch for every detected instance.",
         "original": "Original",
         "preview": "Precision Censor Preview",
+        "previous_image": "Previous Image",
+        "next_image": "Next Image",
+        "preview_position": "Image {current} of {total}",
         "show_region_numbers": "Show Detected Region Numbers",
         "show_region_numbers_help": "Red numbered markers appear only in the page preview and are never written to downloaded or batch-exported images.",
         "no_detection": "No selected regions were found. Add the region under Recovery Regions and lower the recovery threshold.",
@@ -288,6 +295,17 @@ def region_label(index, detection) -> str:
 def upload_key(index: int, filename: str, data: bytes) -> str:
     identity = f"{index}:{filename}:".encode("utf-8") + data
     return hashlib.sha1(identity).hexdigest()[:20]
+
+
+def move_preview(delta: int, total: int) -> None:
+    current = int(st.session_state.get("preview_index", 0))
+    st.session_state["preview_index"] = max(0, min(total - 1, current + delta))
+
+
+def sync_region_number_visibility() -> None:
+    st.session_state["region_numbers_visible"] = bool(
+        st.session_state.get("show_region_numbers", True)
+    )
 
 
 def detection_store() -> dict:
@@ -477,10 +495,19 @@ if not selected_parts:
     render_kitty_gift_game(KITTY_GALLERY_DIR, tr("gift_prompt"), tr("gift_reveal"))
     st.stop()
 
+pending_preview_index = st.session_state.pop("_pending_preview_index", None)
+if pending_preview_index is not None:
+    st.session_state["preview_index"] = max(
+        0, min(len(uploaded_files) - 1, int(pending_preview_index))
+    )
+elif not 0 <= int(st.session_state.get("preview_index", 0)) < len(uploaded_files):
+    st.session_state["preview_index"] = 0
+
 preview_index = st.selectbox(
     tr("preview_file"),
     options=list(range(len(uploaded_files))),
     format_func=lambda index: f"{index + 1}. {uploaded_files[index].name}",
+    key="preview_index",
 )
 current_file = uploaded_files[preview_index]
 current_data = current_file.getvalue()
@@ -612,10 +639,13 @@ processed_preview = apply_censor(
     **effect_settings,
 )
 
+st.session_state.setdefault("region_numbers_visible", True)
+st.session_state["show_region_numbers"] = st.session_state["region_numbers_visible"]
 show_region_numbers = st.toggle(
     tr("show_region_numbers"),
-    value=True,
     help=tr("show_region_numbers_help"),
+    key="show_region_numbers",
+    on_change=sync_region_number_visibility,
 )
 display_original = (
     draw_detection_markers(current_image, candidate_detections)
@@ -632,7 +662,50 @@ left, right = st.columns(2, gap="medium")
 with left:
     st.image(display_original, caption=tr("original"), use_container_width=True)
 with right:
-    st.image(display_preview, caption=tr("preview"), use_container_width=True)
+    preview_action = render_preview_navigator(
+        display_preview,
+        caption=tr("preview"),
+        previous_label=tr("previous_image"),
+        next_label=tr("next_image"),
+        can_previous=preview_index > 0,
+        can_next=preview_index < len(uploaded_files) - 1,
+        position=preview_index + 1,
+        total=len(uploaded_files),
+        key="basic_preview_navigator",
+    )
+
+if preview_action:
+    offset = -1 if preview_action == "previous" else 1
+    st.session_state["_pending_preview_index"] = max(
+        0, min(len(uploaded_files) - 1, preview_index + offset)
+    )
+    st.rerun()
+
+previous_column, position_column, next_column = st.columns([1, 1.2, 1])
+with previous_column:
+    st.button(
+        f"← {tr('previous_image')}",
+        disabled=preview_index == 0,
+        on_click=move_preview,
+        args=(-1, len(uploaded_files)),
+        key="preview_previous_button",
+        use_container_width=True,
+    )
+with position_column:
+    st.markdown(
+        f"<p style='text-align:center;margin:.45rem 0 0;color:#8b91a1'>"
+        f"{tr('preview_position', current=preview_index + 1, total=len(uploaded_files))}</p>",
+        unsafe_allow_html=True,
+    )
+with next_column:
+    st.button(
+        f"{tr('next_image')} →",
+        disabled=preview_index == len(uploaded_files) - 1,
+        on_click=move_preview,
+        args=(1, len(uploaded_files)),
+        key="preview_next_button",
+        use_container_width=True,
+    )
 
 if not candidate_detections:
     st.warning(tr("no_detection"))
