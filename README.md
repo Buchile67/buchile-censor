@@ -4,28 +4,15 @@
 
 A local contour-aware image masking tool with pixel mosaics, sticker overlays, region selection, and batch export. Input images are processed on the local machine and are not uploaded by the application.
 
-## Android 测试版 / Android beta
-
-[下载 Android ARM64 APK（v0.1.0-beta.1，约 124 MB）](https://github.com/Buchile67/buchile-censor/releases/download/v0.1.0-android-beta.1/Buchile-Censor-Android-v0.1.0-beta.1-arm64.apk)
-
-[Download the Android ARM64 APK (v0.1.0-beta.1, about 124 MB)](https://github.com/Buchile67/buchile-censor/releases/download/v0.1.0-android-beta.1/Buchile-Censor-Android-v0.1.0-beta.1-arm64.apk)
-
-这是基础版的原生 Android 测试实现，模型和贴图均已包含在 APK 中，无需安装 Python、Miniconda 或另外下载模型。支持 Android 8.0 及以上的 ARM64 手机，图片只在手机本地处理。当前版本提供双模型轮廓检测、多图选择、部位筛选、识别灵敏度、普通/内置/自定义贴图马赛克、预览序号、前后切图、单图与批量导出、中英文界面和离线礼盒小游戏。
-
-This is a native Android beta based on the Base Edition. Models and sticker assets are bundled in the APK, so Python, Miniconda, and separate model downloads are not required. It supports ARM64 phones running Android 8.0 or later and processes images locally. The beta includes dual-model contour detection, multi-image selection, region filtering, sensitivity control, pixel/built-in/custom sticker masking, preview-only numbering, previous/next navigation, current and batch export, Chinese/English UI, and the offline gift-box mini-game.
-
-当前为兼容性测试版：推理固定为 640，使用 CPU，参数暂为本次会话统一设置；尚未加入先锋版的 SAM 2 交互精修。部分厂商系统首次安装时需要允许浏览器或文件管理器“安装未知应用”。测试包的后续版本如更换签名，可能需要先卸载旧测试版。SHA-256：`163F635EA55D0B6FA038A677ADF3203FBF209342E4B0A9751960D9078DDA9E15`。
-
-Current beta limitations: fixed 640 inference, CPU execution, and one shared parameter profile per session. Vanguard SAM 2 interactive refinement is not included yet. Some Android variants require permission for the browser or file manager to install unknown apps. A later test build may require uninstalling an older beta if its signing key changes. SHA-256: `163F635EA55D0B6FA038A677ADF3203FBF209342E4B0A9751960D9078DDA9E15`.
-
 ## 版本选择 / Edition guide
 
-[基础版 / Base Edition](https://github.com/Buchile67/buchile-censor) · [先锋版 / Vanguard Beta](https://github.com/Buchile67/buchile-censor-vanguard-beta)
+[基础版 / Base Edition](https://github.com/Buchile67/buchile-censor) · [先锋版 / Vanguard Beta](https://github.com/Buchile67/buchile-censor-vanguard-beta) · [Android 测试版 / Android Beta](https://github.com/Buchile67/buchile-censor-android)
 
 | 版本 / Edition | 主要优势 / Advantages | 适用场景 / Best for |
 | --- | --- | --- |
 | **基础版 / Base Edition（当前 / Current）** | 环境更轻、启动与批量处理更快；保留轮廓级遮挡、贴图和低阈值补检等核心功能。<br>Lighter runtime and faster startup/batch processing while retaining contour masking, stickers, and low-threshold recovery. | 优先考虑易部署、处理速度和批量工作流。<br>Prioritizing simpler deployment, speed, and batch workflows. |
 | **[先锋版 / Vanguard Beta](https://github.com/Buchile67/buchile-censor-vanguard-beta)** | 增加 SAM 2.1 自动与交互式精修、包含/排除点、CPU/GPU 选择及按图片/区域保存参数。<br>Adds SAM 2.1 automatic and interactive refinement, include/exclude points, CPU/GPU selection, and per-image/per-region profiles. | 对轮廓控制要求更高，并可接受更大的环境和更长的处理时间。<br>Higher contour-control requirements where a larger runtime and longer processing time are acceptable. |
+| **[Android 测试版 / Android Beta](https://github.com/Buchile67/buchile-censor-android)** · **[下载 APK / Download](https://github.com/Buchile67/buchile-censor-android/releases/download/v0.1.0-android-beta.1/Buchile-Censor-Android-v0.1.0-beta.1-arm64.apk)** | 安装即用，模型和贴图内置，无需 Python、Miniconda 或额外模型下载；针对触屏和 Android 文件选择器设计。<br>Installable APK with bundled models and stickers, no Python or separate model download, and a touch-oriented workflow. | 希望直接在 Android 8.0+ ARM64 手机上离线处理图片。<br>Local image processing directly on an Android 8.0+ ARM64 phone. |
 
 ## 中文
 
