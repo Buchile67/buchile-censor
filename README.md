@@ -22,6 +22,7 @@ A local contour-aware image masking tool with pixel mosaics, sticker overlays, r
 - 遮挡效果限制在模型输出的像素级轮廓内。
 - 识别阈值、补检参数和推理尺寸可应用到当前图片或全部图片。
 - 预览图可显示区域序号；序号不会写入导出文件。
+- 每张图片的逐序号区域开关独立保存；切换图片后仍会保留，并同时用于单图下载和批量导出。
 - 支持预览图左右半区点击切换，以及底部上一张/下一张按钮。
 - 支持可调强度的像素马赛克。
 - 支持大狗叫、耄耋两种内置贴图及自定义贴图；贴图模式不会叠加像素马赛克。
@@ -57,6 +58,7 @@ cd buchile-censor
 - Masking effects constrained to pixel-level model contours.
 - Detection thresholds, recovery settings, and inference size can apply to the current image or all images.
 - Optional numbered region markers in previews; markers are never included in exports.
+- Per-image region-number selections persist across navigation and are shared by current-image and batch exports.
 - Navigate previews from the image's left/right halves or the Previous/Next buttons below it.
 - Adjustable pixel-mosaic strength.
 - Built-in dog and cat stickers plus custom uploads; sticker mode does not mix in pixel mosaics.
